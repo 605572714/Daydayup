@@ -32,4 +32,7 @@ function getData(url) {
     })
   })
 }
-module.exports = getData;
+let url = "https://github.com/605572714/studyALGO"
+getData(url).then(res => {
+  console.log(res);
+})

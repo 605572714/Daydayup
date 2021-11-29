@@ -11,7 +11,7 @@ async function getRequest(url) {
         },
         encoding: null
       },
-      async (error, _, body) => {
+      async (error, response, body) => {
         if (!error) {
           resolve(body);
         } else {

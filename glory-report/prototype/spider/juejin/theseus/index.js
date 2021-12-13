@@ -20,12 +20,14 @@ let url = "https://api.juejin.cn/content_api/v1/article/query_list?aid=2608&uuid
 // TE: trailers
 const request = require("request");
 const zlib = require('zlib');
+const createPage = require("../../billbill/theseus/createPage")
 let list = []
 let data = {
   "user_id": "545787328857112",
   "sort_type": 2,
   "cursor": "0"
 }
+let res = null;
 function getRequest (url) {
   request({
     url,
@@ -37,16 +39,51 @@ function getRequest (url) {
     body: JSON.stringify(data),
   },
     (error, response, body) => {
-      console.log(response.statusCode);
       if (!error && response.statusCode == 200) {
         body = JSON.parse(body)
-        console.log(body);
-        // data.cursor = body.cursor;
-        // for (let i = 0; i < array.length; i++) {
-        //   const element = array[i];
-
-        // }
-        // if (body.)
+        if (!res) {
+          res = body
+          let article = [];
+          for (let i = 0; i < body.data.length; i++) {
+            const article_item = body.data[i].article_info;
+            const author_item = body.data[i].author_user_info
+            article[i] = {
+              title: article_item.title,
+              description: article_item.brief_content,
+              "view": article_item.view_count,
+              "collect": article_item.collect_count,
+              "zan": article_item.digg_count,
+              author: author_item.user_name,
+              "create": article_item.ctime,
+              "pic": article_item.cover_image
+            }
+          }
+          res.data = article;
+          data.cursor = body.cursor
+        } else {
+          let article = []
+          for (let i = 0; i < body.data.length; i++) {
+            const article_item = body.data[i].article_info;
+            const author_item = body.data[i].author_user_info
+            article[i] = {
+              title: article_item.title,
+              description: article_item.brief_content,
+              "view_count": article_item.view_count,
+              "collect_count": article_item.collect_count,
+              "digg_count": article_item.digg_count,
+              author: author_item.user_name,
+              "create": article_item.ctime
+            }
+          }
+          res.data = res.data.concat(article);
+          res.has_more = body.has_more;
+          res.count = body.count;
+          res.cursor = body.cursor;
+          data.cursor = body.cursor
+        }
+        if (body.has_more) {
+          getRequest(url)
+        }
       }
     }
 
